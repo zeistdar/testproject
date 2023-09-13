@@ -171,7 +171,7 @@ provider "aws" {
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key-pair-ec2"
+  key_name   = "deployer-ssh-key"
   public_key = file("/tmp/deployer_key.pub")
 }
 
@@ -193,7 +193,7 @@ resource "aws_instance" "docker_host" {
               if [ $? -ne 0 ]; then echo "Error updating packages" >> $LOG_FILE; fi
 
               echo "Installing Docker..." >> $LOG_FILE
-              yum install -y docker >> $LOG_FILE 2>&1
+              yum install -y docker libxcrypt-compat >> $LOG_FILE 2>&1
               if [ $? -ne 0 ]; then echo "Error installing Docker" >> $LOG_FILE; fi
 
               echo "Starting Docker..." >> $LOG_FILE
@@ -255,7 +255,7 @@ EOT
 
 
 resource "aws_security_group" "allow_alb" {
-  name        = "allow_inboubd_outbound_traffic"
+  name        = "allow_inbound_outbound_traffic"
   description = "Allow all inbound and outbound traffic"
 
   ingress {
