@@ -171,7 +171,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "docker_host" {
-  ami             = "ami-0c55b159cbfafe1f0" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
+  ami             = "ami-0648880541a3156f7" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
   instance_type   = "t2.micro"
 
   key_name        = "your_key_name" # Ensure you have this key pair created or replace with your existing key pair name
