@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  fastapi-app:
+    image: your_dockerhub_username/your_image_name:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - AWS_DEFAULT_REGION=us-west-2
+      - ES_URL=http://elasticsearch:9200  # This refers to the Elasticsearch service in the same docker-compose file
+    depends_on:
+      - elasticsearch
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    environment:
+      - discovery.type=single-node
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
