@@ -76,6 +76,15 @@ jobs:
         echo "${{ secrets.DEPLOYER_PRIVATE_KEY }}" > ./deployer_key
         chmod 600 ./deployer_key
         ssh-keygen -y -f ./deployer_key > ./deployer_key.pub
+    
+    - name: List files
+      run: ls -al
+    
+    - name: Create Private Key
+      run: |
+        echo "${{ secrets.DEPLOYER_PRIVATE_KEY }}" > /tmp/deployer_key
+        chmod 600 /tmp/deployer_key
+        ssh-keygen -y -f /tmp/deployer_key > /tmp/deployer_key.pub
 
     - name: Terraform Init (Main)
       run: |

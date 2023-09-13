@@ -172,7 +172,7 @@ provider "aws" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "deployer-key"
-  public_key = file("./deployer_key.pub")
+  public_key = file("/tmp/deployer_key.pub")
 }
 
 resource "aws_instance" "docker_host" {
