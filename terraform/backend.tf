@@ -179,7 +179,7 @@ resource "aws_instance" "docker_host" {
   ami             = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
   instance_type   = "t2.micro"
 
-  key_name        = aws_key_pair.deployer # Ensure you have this key pair created or replace with your existing key pair name
+  key_name        = aws_key_pair.deployer.key_name # Ensure you have this key pair created or replace with your existing key pair name
   security_groups = [aws_security_group.allow_alb.name]
   user_data = <<-EOT
               #!/bin/bash
