@@ -220,7 +220,7 @@ resource "aws_instance" "docker_host" {
 
 
 resource "aws_security_group" "allow_alb" {
-  name        = "allow_alb"
+  name        = "allow_all_traffic"
   description = "Allow all inbound traffic"
 
   ingress {
