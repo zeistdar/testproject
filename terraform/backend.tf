@@ -169,11 +169,17 @@
 provider "aws" {
   region = "us-west-1"
 }
+
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer-key"
+  public_key = file("./deployer_key.pub")
+}
+
 resource "aws_instance" "docker_host" {
   ami             = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
   instance_type   = "t2.micro"
 
-  key_name        = "your_key_name" # Ensure you have this key pair created or replace with your existing key pair name
+  key_name        = aws_key_pair.deployer # Ensure you have this key pair created or replace with your existing key pair name
   security_groups = [aws_security_group.allow_alb.name]
   user_data = <<-EOT
               #!/bin/bash
@@ -219,7 +225,7 @@ resource "aws_instance" "docker_host" {
 
 
 resource "aws_security_group" "allow_alb" {
-  name        = "allow_docker_traffic"
+  name        = "allow_docker_traffic_to_alb"
   description = "Allow all inbound traffic"
 
   ingress {
