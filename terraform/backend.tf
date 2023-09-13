@@ -181,16 +181,37 @@ resource "aws_instance" "docker_host" {
 
   key_name        = aws_key_pair.deployer.key_name # Ensure you have this key pair created or replace with your existing key pair name
   security_groups = [aws_security_group.allow_alb.name]
-  user_data = <<-EOT
+  user_data =  <<-EOT
               #!/bin/bash
-              yum update -y
-              yum install -y docker
+
+              LOG_FILE="/home/ec2-user/user_data.log"
+
+              echo "Starting user_data script..." >> $LOG_FILE
+
+              echo "Updating system packages..." >> $LOG_FILE
+              yum update -y >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error updating packages" >> $LOG_FILE; fi
+
+              echo "Installing Docker..." >> $LOG_FILE
+              yum install -y docker >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error installing Docker" >> $LOG_FILE; fi
+
+              echo "Starting Docker..." >> $LOG_FILE
               systemctl start docker
               systemctl enable docker
+
               usermod -a -G docker ec2-user
+
+              echo "Installing Docker Compose..." >> $LOG_FILE
               curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
               chmod +x /usr/local/bin/docker-compose
-              echo "version: '3'
+
+              # Wait for a bit to ensure docker-compose is available for execution
+              sleep 10
+
+              echo "Creating Docker Compose file..." >> $LOG_FILE
+              cat <<-EOF > /home/ec2-user/docker-compose.yml
+              version: '3'
               services:
                 fastapi-app:
                   image: zeedar/terraform-aws:latest
@@ -213,10 +234,19 @@ resource "aws_instance" "docker_host" {
                       soft: -1
                       hard: -1
                   ports:
-                    - '9200:9200'" > /home/ec2-user/docker-compose.yml
-              docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app
-              docker-compose -f /home/ec2-user/docker-compose.yml up -d
-              EOT
+                    - '9200:9200'
+              EOF
+
+              echo "Pulling Docker images..." >> $LOG_FILE
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error pulling Docker images" >> $LOG_FILE; fi
+
+              echo "Starting Docker containers..." >> $LOG_FILE
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml up -d >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error starting Docker containers" >> $LOG_FILE; fi
+
+              echo "Finished user_data script." >> $LOG_FILE
+EOT
 
   tags = {
     Name = "DockerHost"
