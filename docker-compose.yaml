@@ -9,7 +9,7 @@ services:
     ports:
       - "80:80"
     environment:
-      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_DEFAULT_REGION=us-west-1
       - ES_URL=http://elasticsearch:9200  # This refers to the Elasticsearch service in the same docker-compose file
     depends_on:
       - elasticsearch
