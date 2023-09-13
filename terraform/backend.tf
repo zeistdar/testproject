@@ -171,7 +171,7 @@ provider "aws" {
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key-pair"
+  key_name   = "deployer-key-pair-ec2"
   public_key = file("/tmp/deployer_key.pub")
 }
 
@@ -255,7 +255,7 @@ EOT
 
 
 resource "aws_security_group" "allow_alb" {
-  name        = "allow_docker_traffic_to_alb_sg"
+  name        = "allow_inboubd_outbound_traffic"
   description = "Allow all inbound and outbound traffic"
 
   ingress {
