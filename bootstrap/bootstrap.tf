@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "my-terraform-state-bucket"
+  bucket = "zee-terraform-state-bucket"
   acl    = "private"
 
   versioning {
@@ -16,7 +16,7 @@ resource "aws_s3_bucket" "terraform_state" {
 }
 
 resource "aws_dynamodb_table" "terraform_locks" {
-  name           = "terraform-up-and-running-locks"
+  name           = "zee-terraform-up-and-running-locks"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "LockID"
   
