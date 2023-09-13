@@ -1,6 +1,6 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
-COPY ./app /app
+COPY ./src /app
 
 RUN pip install fastapi uvicorn boto3 elasticsearch
 
