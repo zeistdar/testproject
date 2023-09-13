@@ -2,7 +2,7 @@ version: '3'
 
 services:
   fastapi-app:
-    image: zeedar/terraform-aws:latest
+    image: dekardar/terraform-aws:latest
     build:
       context: .
       dockerfile: Dockerfile
