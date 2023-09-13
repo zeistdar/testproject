@@ -169,9 +169,8 @@
 provider "aws" {
   region = "us-west-1"
 }
-
 resource "aws_instance" "docker_host" {
-  ami             = "ami-0648880541a3156f7" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
+  ami             = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
   instance_type   = "t2.micro"
 
   key_name        = "your_key_name" # Ensure you have this key pair created or replace with your existing key pair name
@@ -220,7 +219,7 @@ resource "aws_instance" "docker_host" {
 
 
 resource "aws_security_group" "allow_alb" {
-  name        = "allow_all_traffic"
+  name        = "allow_docker_traffic"
   description = "Allow all inbound traffic"
 
   ingress {
