@@ -128,7 +128,14 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-west-1
     
-    - name: Update Secrets Manager with runtime value
+    - name: Install jq
+      run: sudo apt-get install -y jq
+      
+    - name: Update Secrets Manager
+      env:
+        open_ai_key: ${{ secrets.OPENAI_API_KEY }}
       run: |
-        open_ai_key=${{ secrets.OPENAI_API_KEY }}
-        aws secretsmanager put-secret-value --secret-id example_secret --secret-string "{\"OPENAI_API_KEY\":\"$open_ai_key\"}" --debug
+        existing_secret=$(aws secretsmanager get-secret-value --secret-id example_secret --query SecretString --output text)
+        updated_secret=$(echo $existing_secret | jq --arg open_ai_key "$open_ai_key" '. + {"OPENAI_API_KEY": $open_ai_key}')      
+        aws secretsmanager put-secret-value --secret-id example_secret --secret-string "$updated_secret"
+    
