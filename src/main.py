@@ -17,9 +17,6 @@ from chromadb.utils import embedding_functions
 import os
 import uuid
 from fastapi import FastAPI, HTTPException
-from elasticsearch import Elasticsearch
-import numpy as np
-# from sentence_transformers import SentenceTransformer
 from typing import List
 from pydantic import BaseModel
 import openai
