@@ -107,6 +107,14 @@ resource "aws_instance" "docker_host" {
               systemctl enable docker
 
               usermod -a -G docker ec2-user
+              echo "Installing Docker Compose..." >> $LOG_FILE
+              curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+
+              # Wait for a bit to ensure docker-compose is available for execution
+              sleep 10
+
+              echo "Creating Docker Compose file..."
 
               echo "Creating Docker Compose file..." >> $LOG_FILE
               cat <<-EOF > /home/ec2-user/docker-compose.yml
