@@ -89,6 +89,10 @@ jobs:
     - name: Create public_key.pub from GitHub Secret
       run: |
         echo "${{ secrets.PUBLIC_SSH_KEY }}" > /tmp/chroma-aws.pub
+    
+    - name: Create private_key from GitHub Secret
+      run: |
+        echo "${{ secrets.PRIVATE_SSH_KEY }}" > /tmp/chroma-aws
 
     - name: Terraform Init (Main)
       run: |

@@ -151,7 +151,7 @@ resource "aws_volume_attachment" "chroma_volume_attachment" {
       host = aws_instance.chroma_instance.public_ip
       type = "ssh"
       user = "ubuntu"
-      private_key = file(var.ssh_private_key)
+      private_key = file("/tmp/chroma-aws")
     }
   }
     depends_on = [aws_instance.chroma_instance, aws_ebs_volume.chroma-volume]
