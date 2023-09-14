@@ -106,7 +106,7 @@ jobs:
     - name: Terraform Plan (Main)
       run: |
         cd terraform
-        terraform plan
+        terraform taint aws_instance.docker_host
       env:
         AWS_DEFAULT_REGION: us-west-1
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

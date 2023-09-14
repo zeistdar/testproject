@@ -124,15 +124,16 @@ resource "aws_instance" "docker_host" {
               EOF
 
               echo "Pulling Docker images..." >> $LOG_FILE
-              docker compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
               if [ $? -ne 0 ]; then echo "Error pulling Docker images" >> $LOG_FILE; fi
 
               echo "Starting Docker containers..." >> $LOG_FILE
-              docker compose -f /home/ec2-user/docker-compose.yml up -d >> $LOG_FILE 2>&1
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml up -d >> $LOG_FILE 2>&1
               if [ $? -ne 0 ]; then echo "Error starting Docker containers" >> $LOG_FILE; fi
 
               echo "Finished user_data script." >> $LOG_FILE
 EOT
+
 
   tags = {
     Name = "DockerHost"

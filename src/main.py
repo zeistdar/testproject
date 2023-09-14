@@ -74,7 +74,7 @@ def get_secret(secret_key):
             return decoded_binary_secret
 
 
-print(secret)
+# print(secret)
 
 
 def log_to_cloudwatch(message):
