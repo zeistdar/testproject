@@ -121,11 +121,14 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-1
+    
     - name: Update Secrets Manager with runtime value
       run: |
         open_ai_key=${{ secrets.OPENAI_API_KEY }}
         aws secretsmanager put-secret-value --secret-id example_secret --secret-string "{\"OPENAI_API_KEY\":\"$open_ai_key\"}" --debug
-      env:
-        AWS_DEFAULT_REGION: us-west-1
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
