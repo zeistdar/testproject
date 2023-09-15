@@ -172,6 +172,7 @@ async def search(request: Request, data: Question, api_key: str = Depends(get_cu
         log_to_cloudwatch(f"Searching with query: {data.question}")
         log_to_cloudwatch("Testing")
         log_to_cloudwatch("Further deployment testing")
+        log_to_cloudwatch("Fnal testing")
         result = collection.query(
             query_texts=[data.question],
             n_results=2
