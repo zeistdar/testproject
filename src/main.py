@@ -52,7 +52,7 @@ sequence_token = None
 import boto3
 import base64
 
-def get_secret(secret_key):
+def get_secret():
     secret_name = "example_secret"
     region_name = "us-west-1" # Change to the region you're working with
 
@@ -65,9 +65,8 @@ def get_secret(secret_key):
         print(e)
         raise e
     else:
-        print(get_secret_value_response)
-        if secret_key in get_secret_value_response:
-            secret = get_secret_value_response[secret_key]
+        if 'SecretString' in get_secret_value_response:
+            secret = get_secret_value_response['SecretString']
             return secret
         else:
             # Binary secrets are base64-encoded, so decode them first
@@ -104,19 +103,19 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Adjust as need
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(HTTPException, _rate_limit_exceeded_handler)
-
+secret_keys = get_secret()
 # API key setup
 API_KEY_NAME = "secret-api-key"
 API_KEY = "my-secret-api-token"  # Store this securely, don't hard-code in production
-CHROMA_AUTH = get_secret("CHROMA_AUTH_TOKEN")
+CHROMA_AUTH = secret_keys["CHROMA_AUTH_TOKEN"]
 MAX_RETRIES = 5
 RETRY_DELAY = 5  # seconds
 headers = {
-    "Authorization": f"Bearer {get_secret('CHROMA_AUTH_TOKEN')}"
+    "Authorization": f"Bearer {CHROMA_AUTH}"
 }
 for attempt in range(MAX_RETRIES):
     try:
-        client = chromadb.HttpClient(host=get_secret("PUBLIC_IP_ADDRESS"), port=8000, headers=headers)
+        client = chromadb.HttpClient(host=secret_keys['PUBLIC_IP_ADDRESS'], port=8000, headers=headers)
         client.list_collections()
         break  # Exit the loop if the connection is successful
     except Exception as e:
@@ -126,7 +125,7 @@ for attempt in range(MAX_RETRIES):
         else:
             raise e  # Raise the exception on the last attempt
 openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-                api_key=get_secret("OPENAI_API_KEY"),
+                api_key=secret_keys["OPENAI_API_KEY"],
                 model_name="text-embedding-ada-002"
             )
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
