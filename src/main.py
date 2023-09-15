@@ -108,7 +108,7 @@ secret_string = get_secret()
 secret_keys = json.loads(secret_string)
 # API key setup
 API_KEY_NAME = "secret-api-key"
-API_KEY = "my-secret-api-token"  # Store this securely, don't hard-code in production
+API_KEY = "secret-api-token"  # Store this securely, don't hard-code in production
 CHROMA_AUTH = secret_keys["CHROMA_AUTH_TOKEN"]
 MAX_RETRIES = 5
 RETRY_DELAY = 5  # seconds
