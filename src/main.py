@@ -65,6 +65,7 @@ def get_secret(secret_key):
         print(e)
         raise e
     else:
+        print(get_secret_value_response)
         if secret_key in get_secret_value_response:
             secret = get_secret_value_response[secret_key]
             return secret
