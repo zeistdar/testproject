@@ -195,7 +195,7 @@ resource "aws_iam_policy" "ec2_cloudwatch_logs" {
           "logs:PutLogEvents",
           "logs:CreateLogStream"
         ],
-        Resource = aws_cloudwatch_log_group.app_log_group.arn,
+        Resource = "${aws_cloudwatch_log_group.app_log_group.arn}:*",
         Effect   = "Allow"
       }
     ]
