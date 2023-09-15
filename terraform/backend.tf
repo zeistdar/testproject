@@ -361,25 +361,27 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       }
     },
     {
-      type = "metric",
+      type = "number",
       x    = 0,
       y    = 12,
       width = 12,
       properties = {
-        alarms = [aws_cloudwatch_metric_alarm.index_endpoint_error_alarm.alarm_name],
-        view   = "timeSeries",
-        title  = "Index Endpoint Errors Alarm"
+        value = [
+          ["App/Endpoints", "EndpointIndexErrorCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
+        ],
+        title = "Endpoint Index Errors (Text)"
       }
     },
     {
-      type = "metric",
+      type = "number",
       x    = 12,
       y    = 12,
       width = 12,
       properties = {
-        alarms = [aws_cloudwatch_metric_alarm.search_endpoint_error_alarm.alarm_name],
-        view   = "timeSeries",
-        title  = "Search Endpoint Errors Alarm"
+        value = [
+          ["App/Endpoints", "EndpointSearchErrorCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
+        ],
+        title = "Endpoint Search Errors (Text)"
       }
     }
   ]
