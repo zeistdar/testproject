@@ -429,7 +429,7 @@ resource "aws_lb_listener" "front_end" {
 
 
 resource "aws_launch_configuration" "as_conf" {
-  name_prefix   = "fastapi-${var.some_unique_variable}-"
+  name_prefix   = "fastapi-${local.current_time}-"
   image_id      = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
   instance_type   = "t2.micro"
 
