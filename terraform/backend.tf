@@ -80,73 +80,73 @@ resource "aws_iam_role_policy_attachment" "ec2_secrets_access" {
   role       = aws_iam_role.ec2_role.name
 }
 
-resource "aws_instance" "docker_host" {
-  ami             = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
-  instance_type   = "t2.micro"
+# resource "aws_instance" "docker_host" {
+#   ami             = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
+#   instance_type   = "t2.micro"
 
-  key_name        = aws_key_pair.deployer.key_name # Ensure you have this key pair created or replace with your existing key pair name
-  security_groups = [aws_security_group.allow_alb.name]
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
-  user_data =  <<-EOT
-              #!/bin/bash
+#   key_name        = aws_key_pair.deployer.key_name # Ensure you have this key pair created or replace with your existing key pair name
+#   security_groups = [aws_security_group.allow_alb.name]
+#   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+#   user_data =  <<-EOT
+#               #!/bin/bash
 
-              LOG_FILE="/home/ec2-user/user_data.log"
+#               LOG_FILE="/home/ec2-user/user_data.log"
 
-              echo "Starting user_data script..." >> $LOG_FILE
+#               echo "Starting user_data script..." >> $LOG_FILE
 
-              echo "Updating system packages..." >> $LOG_FILE
-              yum update -y >> $LOG_FILE 2>&1
-              if [ $? -ne 0 ]; then echo "Error updating packages" >> $LOG_FILE; fi
+#               echo "Updating system packages..." >> $LOG_FILE
+#               yum update -y >> $LOG_FILE 2>&1
+#               if [ $? -ne 0 ]; then echo "Error updating packages" >> $LOG_FILE; fi
 
-              echo "Installing Docker..." >> $LOG_FILE
-              yum install -y docker libxcrypt-compat >> $LOG_FILE 2>&1
-              if [ $? -ne 0 ]; then echo "Error installing Docker" >> $LOG_FILE; fi
+#               echo "Installing Docker..." >> $LOG_FILE
+#               yum install -y docker libxcrypt-compat >> $LOG_FILE 2>&1
+#               if [ $? -ne 0 ]; then echo "Error installing Docker" >> $LOG_FILE; fi
 
-              echo "Starting Docker..." >> $LOG_FILE
-              systemctl start docker
-              systemctl enable docker
+#               echo "Starting Docker..." >> $LOG_FILE
+#               systemctl start docker
+#               systemctl enable docker
 
-              usermod -a -G docker ec2-user
-              echo "Installing Docker Compose..." >> $LOG_FILE
-              curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              chmod +x /usr/local/bin/docker-compose
+#               usermod -a -G docker ec2-user
+#               echo "Installing Docker Compose..." >> $LOG_FILE
+#               curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+#               chmod +x /usr/local/bin/docker-compose
 
-              # Wait for a bit to ensure docker-compose is available for execution
-              sleep 10
+#               # Wait for a bit to ensure docker-compose is available for execution
+#               sleep 10
 
-              echo "Creating Docker Compose file..."
+#               echo "Creating Docker Compose file..."
 
-              echo "Creating Docker Compose file..." >> $LOG_FILE
-              cat <<-EOF > /home/ec2-user/docker-compose.yml
-              version: '3'
-              services:
-                fastapi-app:
-                  image: dekardar/terraform-aws:latest
-                  build:
-                    context: .
-                    dockerfile: Dockerfile
-                  ports:
-                    - '80:80'
-                  environment:
-                    - AWS_DEFAULT_REGION=us-west-1
-              EOF
+#               echo "Creating Docker Compose file..." >> $LOG_FILE
+#               cat <<-EOF > /home/ec2-user/docker-compose.yml
+#               version: '3'
+#               services:
+#                 fastapi-app:
+#                   image: dekardar/terraform-aws:latest
+#                   build:
+#                     context: .
+#                     dockerfile: Dockerfile
+#                   ports:
+#                     - '80:80'
+#                   environment:
+#                     - AWS_DEFAULT_REGION=us-west-1
+#               EOF
 
-              echo "Pulling Docker images..." >> $LOG_FILE
-              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
-              if [ $? -ne 0 ]; then echo "Error pulling Docker images" >> $LOG_FILE; fi
+#               echo "Pulling Docker images..." >> $LOG_FILE
+#               /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
+#               if [ $? -ne 0 ]; then echo "Error pulling Docker images" >> $LOG_FILE; fi
 
-              echo "Starting Docker containers..." >> $LOG_FILE
-              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml up -d >> $LOG_FILE 2>&1
-              if [ $? -ne 0 ]; then echo "Error starting Docker containers" >> $LOG_FILE; fi
+#               echo "Starting Docker containers..." >> $LOG_FILE
+#               /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml up -d >> $LOG_FILE 2>&1
+#               if [ $? -ne 0 ]; then echo "Error starting Docker containers" >> $LOG_FILE; fi
 
-              echo "Finished user_data script." >> $LOG_FILE
-EOT
+#               echo "Finished user_data script." >> $LOG_FILE
+# EOT
 
 
-  tags = {
-    Name = "DockerHost"
-  }
-}
+#   tags = {
+#     Name = "DockerHost"
+#   }
+# }
 
 
 
@@ -317,19 +317,53 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
 }
 
 ######################
-data "aws_vpc" "default" {
-  default = true
-}
+resource "aws_vpc" "custom_vpc" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
 
-data "aws_subnet" "default" {
-  count = length(data.aws_vpc.default.cidr_block_associations[*])
-  vpc_id = data.aws_vpc.default.id
-  
-  filter {
-    name   = "default-for-az"
-    values = ["true"]
+  tags = {
+    Name = "CustomVPC"
   }
 }
+
+resource "aws_subnet" "custom_subnet" {
+  vpc_id     = aws_vpc.custom_vpc.id
+  cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "CustomSubnet"
+  }
+}
+
+resource "aws_internet_gateway" "custom_igw" {
+  vpc_id = aws_vpc.custom_vpc.id
+
+  tags = {
+    Name = "CustomIGW"
+  }
+}
+
+resource "aws_route_table" "custom_rt" {
+  vpc_id = aws_vpc.custom_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.custom_igw.id
+  }
+
+  tags = {
+    Name = "CustomRT"
+  }
+}
+
+resource "aws_route_table_association" "custom_rta" {
+  subnet_id      = aws_subnet.custom_subnet.id
+  route_table_id = aws_route_table.custom_rt.id
+}
+
+
 
 
 
@@ -338,7 +372,7 @@ resource "aws_lb_target_group" "tg" {
   name     = "fastapi-target-group"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = data.aws_vpc.default.id
+  vpc_id   = aws_vpc.custom_vpc.id
 
   health_check {
     enabled             = true
@@ -355,7 +389,7 @@ resource "aws_lb" "this" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.allow_alb.id]
-  subnets            = [for s in data.aws_subnet.default : s.id]
+  subnets            = [aws_subnet.custom_subnet.id]
 
   enable_deletion_protection = false
 
@@ -376,18 +410,72 @@ resource "aws_lb_listener" "front_end" {
 
 resource "aws_launch_configuration" "as_conf" {
   name          = "fastapi-launch-configuration"
-  image_id      = "ami-073e64e4c237c08ad"
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.deployer.key_name
+  ami             = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
+  instance_type   = "t2.micro"
 
+  key_name        = aws_key_pair.deployer.key_name # Ensure you have this key pair created or replace with your existing key pair name
   security_groups = [aws_security_group.allow_alb.name]
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  user_data =  <<-EOT
+              #!/bin/bash
 
-  associate_public_ip_address = true
+              LOG_FILE="/home/ec2-user/user_data.log"
+
+              echo "Starting user_data script..." >> $LOG_FILE
+
+              echo "Updating system packages..." >> $LOG_FILE
+              yum update -y >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error updating packages" >> $LOG_FILE; fi
+
+              echo "Installing Docker..." >> $LOG_FILE
+              yum install -y docker libxcrypt-compat >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error installing Docker" >> $LOG_FILE; fi
+
+              echo "Starting Docker..." >> $LOG_FILE
+              systemctl start docker
+              systemctl enable docker
+
+              usermod -a -G docker ec2-user
+              echo "Installing Docker Compose..." >> $LOG_FILE
+              curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+
+              # Wait for a bit to ensure docker-compose is available for execution
+              sleep 10
+
+              echo "Creating Docker Compose file..."
+
+              echo "Creating Docker Compose file..." >> $LOG_FILE
+              cat <<-EOF > /home/ec2-user/docker-compose.yml
+              version: '3'
+              services:
+                fastapi-app:
+                  image: dekardar/terraform-aws:latest
+                  build:
+                    context: .
+                    dockerfile: Dockerfile
+                  ports:
+                    - '80:80'
+                  environment:
+                    - AWS_DEFAULT_REGION=us-west-1
+              EOF
+
+              echo "Pulling Docker images..." >> $LOG_FILE
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error pulling Docker images" >> $LOG_FILE; fi
+
+              echo "Starting Docker containers..." >> $LOG_FILE
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml up -d >> $LOG_FILE 2>&1
+              if [ $? -ne 0 ]; then echo "Error starting Docker containers" >> $LOG_FILE; fi
+
+              echo "Finished user_data script." >> $LOG_FILE
+EOT
 
   lifecycle {
     create_before_destroy = true
   }
 }
+
 
 resource "aws_autoscaling_group" "as_group" {
   name                 = "fastapi-auto-scaling-group"
@@ -396,7 +484,7 @@ resource "aws_autoscaling_group" "as_group" {
   max_size             = 3
   desired_capacity     = 1
 
-  vpc_zone_identifier = [for s in data.aws_subnet.default : s.id]
+  vpc_zone_identifier = [aws_subnet.custom_subnet.id]
 
   target_group_arns = [aws_lb_target_group.tg.arn]
 
