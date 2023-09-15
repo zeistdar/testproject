@@ -99,6 +99,7 @@ resource "aws_instance" "chroma_instance" {
   instance_type   = var.instance_type
   key_name        = "chroma-keypair"
   security_groups = [aws_security_group.chroma_sg.name]
+  availability_zone = var.availability_zone
 
   user_data = templatefile("${path.module}/startup.sh", {
     chroma_release         = var.chroma_release,
@@ -112,6 +113,10 @@ resource "aws_instance" "chroma_instance" {
     Name = "chroma"
   }
 
+  lifecycle {
+    ignore_changes = [ebs_block_device]
+  }
+
   ebs_block_device {
     device_name = "/dev/sda1"
     volume_size = var.chroma_instance_volume_size  # size in GBs
@@ -120,8 +125,9 @@ resource "aws_instance" "chroma_instance" {
 
 
 resource "aws_ebs_volume" "chroma-volume" {
-  availability_zone = aws_instance.chroma_instance.availability_zone
+  # availability_zone = aws_instance.chroma_instance.availability_zone
   size              = var.chroma_data_volume_size
+  availability_zone = var.availability_zone
 
   tags = {
     Name = "chroma"

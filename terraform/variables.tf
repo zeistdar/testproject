@@ -92,3 +92,8 @@ variable "prevent_chroma_data_volume_delete" {
     type        = bool
     default     = false
 }
+
+variable "availability_zone" {
+  description = "The availability zone where the resources should be created"
+  default     = "us-west-1a"  # You can change this to your preferred AZ
+}
