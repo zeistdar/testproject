@@ -153,6 +153,7 @@ resource "aws_iam_role_policy_attachment" "ec2_secrets_access" {
 resource "aws_security_group" "allow_alb" {
   name        = "allow_inbound_outbound_traffic_final"
   description = "Allow all inbound and outbound traffic"
+  vpc_id = aws_vpc.custom_vpc.id
 
   ingress {
     from_port   = 0
@@ -330,12 +331,25 @@ resource "aws_vpc" "custom_vpc" {
 resource "aws_subnet" "custom_subnet" {
   vpc_id     = aws_vpc.custom_vpc.id
   cidr_block = "10.0.1.0/24"
+  availability_zone = "us-west-1a" 
   map_public_ip_on_launch = true
 
   tags = {
     Name = "CustomSubnet"
   }
 }
+
+resource "aws_subnet" "custom_subnet_2" {
+  vpc_id     = aws_vpc.custom_vpc.id
+  cidr_block = "10.0.2.0/24"
+  availability_zone = "us-west-1c" # Choose a different AZ than your first subnet
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "CustomSubnet2"
+  }
+}
+
 
 resource "aws_internet_gateway" "custom_igw" {
   vpc_id = aws_vpc.custom_vpc.id
@@ -360,6 +374,11 @@ resource "aws_route_table" "custom_rt" {
 
 resource "aws_route_table_association" "custom_rta" {
   subnet_id      = aws_subnet.custom_subnet.id
+  route_table_id = aws_route_table.custom_rt.id
+}
+
+resource "aws_route_table_association" "custom_rta_2" {
+  subnet_id      = aws_subnet.custom_subnet_2.id
   route_table_id = aws_route_table.custom_rt.id
 }
 
@@ -389,7 +408,7 @@ resource "aws_lb" "this" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.allow_alb.id]
-  subnets            = [aws_subnet.custom_subnet.id]
+  subnets            = [aws_subnet.custom_subnet.id, aws_subnet.custom_subnet_2.id]
 
   enable_deletion_protection = false
 
@@ -409,13 +428,14 @@ resource "aws_lb_listener" "front_end" {
 
 
 resource "aws_launch_configuration" "as_conf" {
-  name          = "fastapi-launch-configuration"
-  ami             = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
+  name          = "fastapi-latest-launch-configuration"
+  image_id      = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
   instance_type   = "t2.micro"
 
   key_name        = aws_key_pair.deployer.key_name # Ensure you have this key pair created or replace with your existing key pair name
-  security_groups = [aws_security_group.allow_alb.name]
+  security_groups = [aws_security_group.allow_alb.id]
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  depends_on = [aws_security_group.allow_alb]
   user_data =  <<-EOT
               #!/bin/bash
 
@@ -461,7 +481,7 @@ resource "aws_launch_configuration" "as_conf" {
               EOF
 
               echo "Pulling Docker images..." >> $LOG_FILE
-              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app:${var.docker_image_tag} >> $LOG_FILE 2>&1
               if [ $? -ne 0 ]; then echo "Error pulling Docker images" >> $LOG_FILE; fi
 
               echo "Starting Docker containers..." >> $LOG_FILE
@@ -484,7 +504,7 @@ resource "aws_autoscaling_group" "as_group" {
   max_size             = 3
   desired_capacity     = 1
 
-  vpc_zone_identifier = [aws_subnet.custom_subnet.id]
+  vpc_zone_identifier = [aws_subnet.custom_subnet.id, aws_subnet.custom_subnet_2.id]
 
   target_group_arns = [aws_lb_target_group.tg.arn]
 

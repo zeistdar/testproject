@@ -97,3 +97,9 @@ variable "availability_zone" {
   description = "The availability zone where the resources should be created"
   default     = "us-west-1a"  # You can change this to your preferred AZ
 }
+
+variable "docker_image_tag" {
+  description = "The tag of the Docker image to deploy"
+  type        = string
+  default     = "latest"
+}
