@@ -337,61 +337,58 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       }
     },
     {
-      type = "metric",
-      x    = 12,
-      y    = 0,
-      width = 6,
-      properties = {
-        sparkline = true,
-        view = "singleValue",
-        value = [
-          ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
-        ],
-        title = "Endpoint Search Calls (Text)"
-      }
-    },
-    {
-      type = "metric",
-      x    = 12,
-      y    = 6,
-      width = 6,
-      properties = {
-        sparkline = true,
-        view = "singleValue",
-        value = [
-          ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
-        ],
-        title = "Endpoint Index Calls (Text)"
-      }
-    },
-    {
-      type = "metric",
-      x    = 0,
-      y    = 12,
-      width = 12,
-      properties = {
-        sparkline = true,
-        view = "singleValue",
-        value = [
-          ["App/Endpoints", "EndpointIndexErrorCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
-        ],
-        title = "Endpoint Index Errors (Text)"
-      }
-    },
-    {
-      type = "metric",
-      x    = 12,
-      y    = 12,
-      width = 12,
-      properties = {
-        sparkline = true,
-        view = "singleValue",
-        value = [
-          ["App/Endpoints", "EndpointSearchErrorCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
-        ],
-        title = "Endpoint Search Errors (Text)"
-      }
+    type = "metric",
+    x    = 12,
+    y    = 0,
+    width = 6,
+    properties = {
+      metrics = [
+        ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
+      ],
+      view   = "singleValue",
+      region = "us-west-1",
+      title  = "Endpoint Search Calls (Text)"
     }
+  },
+  # Adjusted "number" widget for Endpoint Index Calls
+  {
+    type = "metric",
+    x    = 12,
+    y    = 6,
+    width = 6,
+    properties = {
+      metrics = [
+        ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
+      ],
+      view   = "singleValue",
+      region = "us-west-1",
+      title  = "Endpoint Index Calls (Text)"
+    }
+  },
+  # Alarm widget for Index Endpoint Errors
+  {
+    type = "metric",
+    x    = 0,
+    y    = 12,
+    width = 12,
+    properties = {
+      alarms = [aws_cloudwatch_metric_alarm.index_endpoint_error_alarm.alarm_name],
+      view   = "timeSeries",
+      title  = "Index Endpoint Errors Alarm"
+    }
+  },
+  # Alarm widget for Search Endpoint Errors
+  {
+    type = "metric",
+    x    = 12,
+    y    = 12,
+    width = 12,
+    properties = {
+      alarms = [aws_cloudwatch_metric_alarm.search_endpoint_error_alarm.alarm_name],
+      view   = "timeSeries",
+      title  = "Search Endpoint Errors Alarm"
+    }
+  }
   ]
 
   })
