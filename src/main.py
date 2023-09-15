@@ -170,6 +170,7 @@ async def index_data(request: Request, data: QA, api_key: str = Depends(get_curr
 async def search(request: Request, data: Question, api_key: str = Depends(get_current_api_key)) -> List[str]:
     try:
         log_to_cloudwatch(f"Searching with query: {data.question}")
+        log_to_cloudwatch("Testing")
         result = collection.query(
             query_texts=[data.question],
             n_results=2
