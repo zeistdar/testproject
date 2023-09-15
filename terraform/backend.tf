@@ -315,3 +315,138 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
     ]
   })
 }
+
+######################
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
+}
+
+
+######################
+resource "aws_lb_target_group" "tg" {
+  name     = "fastapi-target-group"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.default.id
+
+  health_check {
+    enabled             = true
+    interval            = 30
+    path                = "/" 
+    port                = "80"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+  }
+}
+
+resource "aws_lb" "this" {
+  name               = "fastapi-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.allow_alb.id]
+  subnets            = [data.aws_subnet_ids.default.ids] 
+
+  enable_deletion_protection = false
+
+  enable_cross_zone_load_balancing = true
+}
+
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = aws_lb.this.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tg.arn
+  }
+}
+
+
+resource "aws_launch_configuration" "as_conf" {
+  name          = "fastapi-launch-configuration"
+  image_id      = "ami-073e64e4c237c08ad"
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.deployer.key_name
+
+  security_groups = [aws_security_group.allow_alb.name]
+
+  associate_public_ip_address = true
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_group" "as_group" {
+  name                 = "fastapi-auto-scaling-group"
+  launch_configuration = aws_launch_configuration.as_conf.name
+  min_size             = 1
+  max_size             = 3
+  desired_capacity     = 1
+
+  vpc_zone_identifier = data.aws_subnet_ids.default.ids
+
+  target_group_arns = [aws_lb_target_group.tg.arn]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+
+resource "aws_cloudwatch_metric_alarm" "scale_up" {
+  alarm_name          = "cpu-utilization-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "70" # Scale up if CPU > 70%
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.as_group.name
+  }
+
+  alarm_description = "This metric triggers an increase in the instance count of the ASG"
+  alarm_actions     = [aws_autoscaling_policy.scale_up.arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "scale_down" {
+  alarm_name          = "cpu-utilization-low"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "20" # Scale down if CPU < 20%
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.as_group.name
+  }
+
+  alarm_description = "This metric triggers a decrease in the instance count of the ASG"
+  alarm_actions     = [aws_autoscaling_policy.scale_down.arn]
+}
+
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "scale-up"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  autoscaling_group_name = aws_autoscaling_group.as_group.name
+  cooldown               = 300
+}
+
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "scale-down"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  autoscaling_group_name = aws_autoscaling_group.as_group.name
+  cooldown               = 300
+}
