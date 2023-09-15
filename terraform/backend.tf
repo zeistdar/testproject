@@ -370,8 +370,11 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
     y    = 12,
     width = 12,
     properties = {
-      alarms = [aws_cloudwatch_metric_alarm.index_endpoint_error_alarm.alarm_name],
+      annotations = {
+      alarms = [aws_cloudwatch_metric_alarm.index_endpoint_error_alarm.alarm_name]
+      },
       view   = "timeSeries",
+      region = "us-west-1",
       title  = "Index Endpoint Errors Alarm"
     }
   },
@@ -381,7 +384,10 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
     y    = 12,
     width = 12,
     properties = {
-      alarms = [aws_cloudwatch_metric_alarm.search_endpoint_error_alarm.alarm_name],
+      annotations = {
+      alarms = [aws_cloudwatch_metric_alarm.search_endpoint_error_alarm.alarm_name]
+      },
+      region = "us-west-1",
       view   = "timeSeries",
       title  = "Search Endpoint Errors Alarm"
     }
