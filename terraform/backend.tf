@@ -337,11 +337,13 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       }
     },
     {
-      type = "number",
+      type = "metric",
       x    = 12,
       y    = 0,
       width = 6,
       properties = {
+        sparkline = true,
+        view = "singleValue",
         value = [
           ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
         ],
@@ -349,11 +351,13 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       }
     },
     {
-      type = "number",
+      type = "metric",
       x    = 12,
       y    = 6,
       width = 6,
       properties = {
+        sparkline = true,
+        view = "singleValue",
         value = [
           ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
         ],
@@ -361,11 +365,13 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       }
     },
     {
-      type = "number",
+      type = "metric",
       x    = 0,
       y    = 12,
       width = 12,
       properties = {
+        sparkline = true,
+        view = "singleValue",
         value = [
           ["App/Endpoints", "EndpointIndexErrorCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
         ],
@@ -373,11 +379,13 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       }
     },
     {
-      type = "number",
+      type = "metric",
       x    = 12,
       y    = 12,
       width = 12,
       properties = {
+        sparkline = true,
+        view = "singleValue",
         value = [
           ["App/Endpoints", "EndpointSearchErrorCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
         ],
