@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import boto3
 import time
 import os
+import json
 import boto3
 from fastapi import FastAPI, HTTPException, Depends, Request, status
 from fastapi.security import APIKeyHeader
@@ -103,7 +104,8 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Adjust as need
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(HTTPException, _rate_limit_exceeded_handler)
-secret_keys = get_secret()
+secret_string = get_secret()
+secret_keys = json.loads(secret_string)
 # API key setup
 API_KEY_NAME = "secret-api-key"
 API_KEY = "my-secret-api-token"  # Store this securely, don't hard-code in production
