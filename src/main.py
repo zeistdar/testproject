@@ -148,7 +148,7 @@ async def get_current_api_key(api_key_header: str = Depends(api_key_header)):
 
 
 @app.post("/index/", tags=["indexing"])
-@limiter.limit("5/minute")  # Adjust this as needed
+@limiter.limit("10000/minute")  # Adjust this as needed
 async def index_data(request: Request, data: QA, api_key: str = Depends(get_current_api_key)) -> dict:
     try:
         collection.add(
@@ -165,7 +165,7 @@ async def index_data(request: Request, data: QA, api_key: str = Depends(get_curr
 
 
 @app.post("/search/", tags=["search"])
-@limiter.limit("5/minute")  # Adjust this as needed
+@limiter.limit("10000/minute")  # Adjust this as needed
 async def search(request: Request, data: Question, api_key: str = Depends(get_current_api_key)) -> List[float]:
     try:
         result = collection.query(
