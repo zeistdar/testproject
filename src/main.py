@@ -45,8 +45,8 @@ class Question(BaseModel):
 
 # Boto3 CloudWatch client setup
 client = boto3.client('logs', region_name='us-west-1')  # Adjust region as needed
-LOG_GROUP = 'my-log-group'
-LOG_STREAM = 'my-log-stream'
+LOG_GROUP = "custom-search-app-log-group"
+LOG_STREAM = "custom-search-app-log-stream"
 sequence_token = None
 
 
@@ -152,6 +152,7 @@ async def get_current_api_key(api_key_header: str = Depends(api_key_header)):
 @app.post("/index/", tags=["indexing"])
 async def index_data(request: Request, data: QA, api_key: str = Depends(get_current_api_key)) -> dict:
     try:
+        log_to_cloudwatch(f"Indexing data: {data}")
         collection.add(
             documents=[data.question + "\n" + data.answer],
             metadatas=[{"question": data.question}],
@@ -170,6 +171,7 @@ async def index_data(request: Request, data: QA, api_key: str = Depends(get_curr
 @app.post("/search/", tags=["search"])
 async def search(request: Request, data: Question, api_key: str = Depends(get_current_api_key)) -> List[str]:
     try:
+        log_to_cloudwatch(f"Searching with query: {data.question}")
         result = collection.query(
             query_texts=[data.question],
             n_results=2

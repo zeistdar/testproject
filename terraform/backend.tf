@@ -170,3 +170,108 @@ resource "aws_security_group" "allow_alb" {
 }
 
 
+# ...
+
+# CloudWatch Log Group and Stream
+resource "aws_cloudwatch_log_group" "app_log_group" {
+  name = "custom-search-app-log-group"
+}
+
+resource "aws_cloudwatch_log_stream" "app_log_stream" {
+  name           = "custom-search-app-log-stream"
+  log_group_name = aws_cloudwatch_log_group.app_log_group.name
+}
+
+# IAM Policy for EC2 to write logs to CloudWatch
+resource "aws_iam_policy" "ec2_cloudwatch_logs" {
+  name        = "EC2CloudWatchLogs"
+  description = "Allow EC2 to write to CloudWatch Logs"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = [
+          "logs:PutLogEvents",
+          "logs:CreateLogStream"
+        ],
+        Resource = aws_cloudwatch_log_group.app_log_group.arn,
+        Effect   = "Allow"
+      }
+    ]
+  })
+}
+
+# Attach the CloudWatch logs policy to the EC2 role
+resource "aws_iam_role_policy_attachment" "ec2_cloudwatch_logs_access" {
+  policy_arn = aws_iam_policy.ec2_cloudwatch_logs.arn
+  role       = aws_iam_role.ec2_role.name
+}
+
+# CloudWatch Metric Filter to monitor endpoint calls
+resource "aws_cloudwatch_log_metric_filter" "search_endpoint_calls" {
+  name           = "SearchEndpointCalls"
+  pattern        = "Searching"  # Adjust the pattern to match your log format
+  log_group_name = aws_cloudwatch_log_group.app_log_group.name
+
+  metric_transformation {
+    name      = "EndpointSearchCallCount"
+    namespace = "App/Endpoints"
+    value     = "1"
+  }
+}
+
+# CloudWatch Metric Filter to monitor endpoint calls
+resource "aws_cloudwatch_log_metric_filter" "index_endpoint_calls" {
+  name           = "IndexEndpointCalls"
+  pattern        = "Indexing"  # Adjust the pattern to match your log format
+  log_group_name = aws_cloudwatch_log_group.app_log_group.name
+
+  metric_transformation {
+    name      = "EndpointIndexCallCount"
+    namespace = "App/Endpoints"
+    value     = "1"
+  }
+}
+
+# CloudWatch Dashboard
+# CloudWatch Dashboard
+resource "aws_cloudwatch_dashboard" "app_dashboard" {
+  dashboard_name = "App-Dashboard"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type = "metric",
+        x    = 0,
+        y    = 0,
+        width = 12,
+        properties = {
+          metrics = [
+            ["App/Endpoints", "EndpointSearchCallCount"]
+          ],
+          period = 300,
+          stat   = "Sum",
+          title  = "Endpoint Search Calls"
+        }
+      },
+      {
+        type = "metric",
+        x    = 0,
+        y    = 6,  # Adjusting position to appear below the Search Calls widget
+        width = 12,
+        properties = {
+          metrics = [
+            ["App/Endpoints", "EndpointIndexCallCount"]
+          ],
+          period = 300,
+          stat   = "Sum",
+          title  = "Endpoint Index Calls"
+        }
+      }
+    ]
+  })
+}
+
+
+# ...
