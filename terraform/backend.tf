@@ -265,7 +265,7 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       {
         type = "metric",
         x    = 0,
-        y    = 6,  # Adjusting position to appear below the Search Calls widget
+        y    = 6,
         width = 12,
         properties = {
           metrics = [
@@ -281,11 +281,37 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
             }
           }
         }
+      },
+      {
+        type = "number",
+        x    = 12,
+        y    = 0,
+        width = 6,
+        properties = {
+          metrics = [
+            ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1" }]
+          ],
+          period  = 300,
+          stat    = "Sum",
+          region  = "us-west-1",
+          title   = "Endpoint Search Calls (Text)"
+        }
+      },
+      {
+        type = "number",
+        x    = 12,
+        y    = 6,
+        width = 6,
+        properties = {
+          metrics = [
+            ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1" }]
+          ],
+          period  = 300,
+          stat    = "Sum",
+          region  = "us-west-1",
+          title   = "Endpoint Index Calls (Text)"
+        }
       }
     ]
   })
 }
-
-
-
-# ...
