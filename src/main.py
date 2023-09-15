@@ -107,14 +107,25 @@ app.add_exception_handler(HTTPException, _rate_limit_exceeded_handler)
 # API key setup
 API_KEY_NAME = "secret-api-key"
 API_KEY = "my-secret-api-token"  # Store this securely, don't hard-code in production
-CHROMA_AUTH = "GOIwEZaN3mLMqG5chII5Z2pGjwUzkb89"
+CHROMA_AUTH = get_secret("CHROMA_AUTH_TOKEN")
+MAX_RETRIES = 5
+RETRY_DELAY = 5  # seconds
 headers = {
     "Authorization": f"Bearer {get_secret('CHROMA_AUTH_TOKEN')}"
 }
-
-client = chromadb.HttpClient(host=get_secret("PUBLIC_IP_ADDRESS"), port=8000, headers=headers)
+for attempt in range(MAX_RETRIES):
+    try:
+        client = chromadb.HttpClient(host=get_secret("PUBLIC_IP_ADDRESS"), port=8000, headers=headers)
+        client.list_collections()
+        break  # Exit the loop if the connection is successful
+    except Exception as e:
+        if attempt < MAX_RETRIES - 1:  # i.e. if it's not the last attempt
+            print(f"Attempt {attempt + 1} failed. Retrying in {RETRY_DELAY} seconds...")
+            time.sleep(RETRY_DELAY)
+        else:
+            raise e  # Raise the exception on the last attempt
 openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-                api_key=get_secret("OPENAI_API_KEY")"),
+                api_key=get_secret("OPENAI_API_KEY"),
                 model_name="text-embedding-ada-002"
             )
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
