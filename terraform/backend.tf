@@ -578,7 +578,7 @@ EOT
 
 
 resource "aws_autoscaling_group" "as_group" {
-  name                 = "fastapi-auto-scaling-group"
+  name                 = "fastapi-${aws_launch_configuration.as_conf.name_prefix}"
   launch_configuration = aws_launch_configuration.as_conf.name
   min_size             = 1
   max_size             = 3
