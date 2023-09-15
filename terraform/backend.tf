@@ -321,9 +321,16 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
+data "aws_subnet" "default" {
+  count = length(data.aws_vpc.default.cidr_block_association[*])
   vpc_id = data.aws_vpc.default.id
+  
+  filter {
+    name   = "default-for-az"
+    values = ["true"]
+  }
 }
+
 
 
 ######################
@@ -348,7 +355,7 @@ resource "aws_lb" "this" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.allow_alb.id]
-  subnets            = [data.aws_subnet_ids.default.ids] 
+  subnets            = [for s in data.aws_subnet.default : s.id]
 
   enable_deletion_protection = false
 
@@ -389,7 +396,7 @@ resource "aws_autoscaling_group" "as_group" {
   max_size             = 3
   desired_capacity     = 1
 
-  vpc_zone_identifier = data.aws_subnet_ids.default.ids
+  vpc_zone_identifier = [for s in data.aws_subnet.default : s.id]
 
   target_group_arns = [aws_lb_target_group.tg.arn]
 
