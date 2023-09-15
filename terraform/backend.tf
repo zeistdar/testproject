@@ -236,85 +236,154 @@ resource "aws_cloudwatch_log_metric_filter" "index_endpoint_calls" {
   }
 }
 
-# CloudWatch Dashboard
-# CloudWatch Dashboard
+# CloudWatch Metric Filter to monitor endpoint calls
+resource "aws_cloudwatch_log_metric_filter" "index_endpoint_errors" {
+  name           = "IndexEndpointErrors"
+  pattern        = "Index Failed"  # Adjust the pattern to match your log format
+  log_group_name = aws_cloudwatch_log_group.app_log_group.name
+
+  metric_transformation {
+    name      = "EndpointIndexErrorCount"
+    namespace = "App/Endpoints"
+    value     = "1"
+  }
+}
+
+# CloudWatch Metric Filter to monitor endpoint calls
+resource "aws_cloudwatch_log_metric_filter" "search_endpoint_errors" {
+  name           = "SearchEndpointErrors"
+  pattern        = "Search Failed"  # Adjust the pattern to match your log format
+  log_group_name = aws_cloudwatch_log_group.app_log_group.name
+
+  metric_transformation {
+    name      = "EndpointSearchErrorCount"
+    namespace = "App/Endpoints"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "index_endpoint_error_alarm" {
+  alarm_name          = "IndexEndpointErrorAlarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "EndpointIndexErrorCount"
+  namespace           = "App/Endpoints"
+  period              = "300"
+  statistic           = "SampleCount"
+  threshold           = "1"
+  alarm_description   = "This metric triggers an alarm if the Index endpoint has errors"
+  alarm_actions       = [] 
+}
+
+resource "aws_cloudwatch_metric_alarm" "search_endpoint_error_alarm" {
+  alarm_name          = "SearchEndpointErrorAlarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "EndpointSearchErrorCount"
+  namespace           = "App/Endpoints"
+  period              = "300"
+  statistic           = "SampleCount"
+  threshold           = "1"
+  alarm_description   = "This metric triggers an alarm if the Search endpoint has errors"
+  alarm_actions       = []  
+}
+
+
+
 # CloudWatch Dashboard
 resource "aws_cloudwatch_dashboard" "app_dashboard" {
   dashboard_name = "App-Dashboard"
 
   dashboard_body = jsonencode({
     widgets = [
-      {
-        type = "metric",
-        x    = 0,
-        y    = 0,
-        width = 12,
-        properties = {
-          metrics = [
-            ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1" }]
-          ],
-          period  = 300,
-          stat    = "Sum",
-          region  = "us-west-1",
-          title   = "Endpoint Search Calls",
-          yAxis = {
-            left = {
-              min = 0
-            }
+    {
+      type = "metric",
+      x    = 0,
+      y    = 0,
+      width = 12,
+      properties = {
+        metrics = [
+          ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1" }]
+        ],
+        period  = 300,
+        stat    = "Sum",
+        region  = "us-west-1",
+        title   = "Endpoint Search Calls",
+        yAxis = {
+          left = {
+            min = 0
           }
-        }
-      },
-      {
-        type = "metric",
-        x    = 0,
-        y    = 6,
-        width = 12,
-        properties = {
-          metrics = [
-            ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1" }]
-          ],
-          period  = 300,
-          stat    = "Sum",
-          region  = "us-west-1",
-          title   = "Endpoint Index Calls",
-          yAxis = {
-            left = {
-              min = 0
-            }
-          }
-        }
-      },
-      {
-        type = "number",
-        x    = 12,
-        y    = 0,
-        width = 6,
-        properties = {
-          metrics = [
-            ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1" }]
-          ],
-          period  = 300,
-          stat    = "Sum",
-          region  = "us-west-1",
-          title   = "Endpoint Search Calls (Text)"
-        }
-      },
-      {
-        type = "number",
-        x    = 12,
-        y    = 6,
-        width = 6,
-        properties = {
-          metrics = [
-            ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1" }]
-          ],
-          period  = 300,
-          stat    = "Sum",
-          region  = "us-west-1",
-          title   = "Endpoint Index Calls (Text)"
         }
       }
-    ]
+    },
+    {
+      type = "metric",
+      x    = 0,
+      y    = 6,
+      width = 12,
+      properties = {
+        metrics = [
+          ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1" }]
+        ],
+        period  = 300,
+        stat    = "Sum",
+        region  = "us-west-1",
+        title   = "Endpoint Index Calls",
+        yAxis = {
+          left = {
+            min = 0
+          }
+        }
+      }
+    },
+    {
+      type = "number",
+      x    = 12,
+      y    = 0,
+      width = 6,
+      properties = {
+        value = [
+          ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
+        ],
+        title = "Endpoint Search Calls (Text)"
+      }
+    },
+    {
+      type = "number",
+      x    = 12,
+      y    = 6,
+      width = 6,
+      properties = {
+        value = [
+          ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1", "period": 300, "stat": "Sum" }]
+        ],
+        title = "Endpoint Index Calls (Text)"
+      }
+    },
+    {
+      type = "metric",
+      x    = 0,
+      y    = 12,
+      width = 12,
+      properties = {
+        alarms = [aws_cloudwatch_metric_alarm.index_endpoint_error_alarm.alarm_name],
+        view   = "timeSeries",
+        title  = "Index Endpoint Errors Alarm"
+      }
+    },
+    {
+      type = "metric",
+      x    = 12,
+      y    = 12,
+      width = 12,
+      properties = {
+        alarms = [aws_cloudwatch_metric_alarm.search_endpoint_error_alarm.alarm_name],
+        view   = "timeSeries",
+        title  = "Search Endpoint Errors Alarm"
+      }
+    }
+  ]
+
   })
 }
 
