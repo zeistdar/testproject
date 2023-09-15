@@ -28,7 +28,7 @@ locals {
     PUBLIC_IP_ADDRESS = aws_instance.chroma_instance.public_ip,
     CHROMA_AUTH_TOKEN = random_password.chroma_token.result
   }
-  current_time = timestamp()
+  current_time = replace(timestamp(), ":", "-")
 }
 
 resource "aws_secretsmanager_secret_version" "example_secret_version" {
