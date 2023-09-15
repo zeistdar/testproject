@@ -322,7 +322,7 @@ data "aws_vpc" "default" {
 }
 
 data "aws_subnet" "default" {
-  count = length(data.aws_vpc.default.cidr_block_association[*])
+  count = length(data.aws_vpc.default.cidr_block_associations[*])
   vpc_id = data.aws_vpc.default.id
   
   filter {
