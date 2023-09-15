@@ -236,6 +236,7 @@ resource "aws_cloudwatch_log_metric_filter" "index_endpoint_calls" {
 
 # CloudWatch Dashboard
 # CloudWatch Dashboard
+# CloudWatch Dashboard
 resource "aws_cloudwatch_dashboard" "app_dashboard" {
   dashboard_name = "App-Dashboard"
 
@@ -248,11 +249,17 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
         width = 12,
         properties = {
           metrics = [
-            ["App/Endpoints", "EndpointSearchCallCount"]
+            ["App/Endpoints", "EndpointSearchCallCount", { "region": "us-west-1" }]
           ],
-          period = 300,
-          stat   = "Sum",
-          title  = "Endpoint Search Calls"
+          period  = 300,
+          stat    = "Sum",
+          region  = "us-west-1",
+          title   = "Endpoint Search Calls",
+          yAxis = {
+            left = {
+              min = 0
+            }
+          }
         }
       },
       {
@@ -262,16 +269,23 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
         width = 12,
         properties = {
           metrics = [
-            ["App/Endpoints", "EndpointIndexCallCount"]
+            ["App/Endpoints", "EndpointIndexCallCount", { "region": "us-west-1" }]
           ],
-          period = 300,
-          stat   = "Sum",
-          title  = "Endpoint Index Calls"
+          period  = 300,
+          stat    = "Sum",
+          region  = "us-west-1",
+          title   = "Endpoint Index Calls",
+          yAxis = {
+            left = {
+              min = 0
+            }
+          }
         }
       }
     ]
   })
 }
+
 
 
 # ...
