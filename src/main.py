@@ -168,12 +168,14 @@ async def index_data(request: Request, data: QA, api_key: str = Depends(get_curr
 
 # @limiter.limit("10000/minute")  # Adjust this as needed
 @app.post("/search/", tags=["search"])
-async def search(request: Request, data: Question, api_key: str = Depends(get_current_api_key)) -> List[float]:
+async def search(request: Request, data: Question, api_key: str = Depends(get_current_api_key)) -> List[str]:
     try:
         result = collection.query(
             query_texts=[data.question],
             n_results=2
         )
+        print(result)
+        print(result["documents"][0])
         return result["documents"][0]
     except Exception as e:
         print(e)
