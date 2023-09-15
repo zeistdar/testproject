@@ -101,9 +101,9 @@ def log_to_cloudwatch(message):
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Adjust as needed
 
 # Rate limiter setup
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-app.add_exception_handler(HTTPException, _rate_limit_exceeded_handler)
+# limiter = Limiter(key_func=get_remote_address)
+# app.state.limiter = limiter
+# app.add_exception_handler(HTTPException, _rate_limit_exceeded_handler)
 secret_string = get_secret()
 secret_keys = json.loads(secret_string)
 # API key setup
