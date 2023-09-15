@@ -3,7 +3,7 @@ import boto3
 import time
 import os
 import json
-import boto3
+import base64
 from fastapi import FastAPI, HTTPException, Depends, Request, status
 from fastapi.security import APIKeyHeader
 from elasticsearch import Elasticsearch
@@ -43,15 +43,17 @@ class QA(BaseModel):
 class Question(BaseModel):
     question: str
 
+
+# FastAPI app setup
+# app = FastAPI()
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Adjust as needed
 # Boto3 CloudWatch client setup
-client = boto3.client('logs', region_name='us-west-1')  # Adjust region as needed
+log_client = boto3.client('logs', region_name='us-west-1')  # Adjust region as needed
 LOG_GROUP = "custom-search-app-log-group"
 LOG_STREAM = "custom-search-app-log-stream"
 sequence_token = None
 
 
-import boto3
-import base64
 
 def get_secret():
     secret_name = "example_secret"
@@ -92,13 +94,9 @@ def log_to_cloudwatch(message):
     }
     if sequence_token:
         event_log['sequenceToken'] = sequence_token
-    response = client.put_log_events(**event_log)
+    # global client
+    response = log_client.put_log_events(**event_log)
     sequence_token = response['nextSequenceToken']
-
-
-# FastAPI app setup
-# app = FastAPI()
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Adjust as needed
 
 # Rate limiter setup
 # limiter = Limiter(key_func=get_remote_address)
