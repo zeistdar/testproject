@@ -561,7 +561,7 @@ resource "aws_launch_configuration" "as_conf" {
               EOF
 
               echo "Pulling Docker images..." >> $LOG_FILE
-              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app:${var.docker_image_tag} >> $LOG_FILE 2>&1
+              /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml pull fastapi-app >> $LOG_FILE 2>&1
               if [ $? -ne 0 ]; then echo "Error pulling Docker images" >> $LOG_FILE; fi
 
               echo "Starting Docker containers..." >> $LOG_FILE
