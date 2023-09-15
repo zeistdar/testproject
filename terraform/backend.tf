@@ -350,7 +350,6 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       title  = "Endpoint Search Calls (Text)"
     }
   },
-  # Adjusted "number" widget for Endpoint Index Calls
   {
     type = "metric",
     x    = 12,
@@ -365,7 +364,6 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       title  = "Endpoint Index Calls (Text)"
     }
   },
-  # Alarm widget for Index Endpoint Errors
   {
     type = "metric",
     x    = 0,
@@ -377,7 +375,6 @@ resource "aws_cloudwatch_dashboard" "app_dashboard" {
       title  = "Index Endpoint Errors Alarm"
     }
   },
-  # Alarm widget for Search Endpoint Errors
   {
     type = "metric",
     x    = 12,
