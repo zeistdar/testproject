@@ -28,6 +28,7 @@ locals {
     PUBLIC_IP_ADDRESS = aws_instance.chroma_instance.public_ip,
     CHROMA_AUTH_TOKEN = random_password.chroma_token.result
   }
+  current_time = timestamp()
 }
 
 resource "aws_secretsmanager_secret_version" "example_secret_version" {
@@ -428,7 +429,7 @@ resource "aws_lb_listener" "front_end" {
 
 
 resource "aws_launch_configuration" "as_conf" {
-  name          = "fastapi-latest-launch-configuration"
+  name_prefix   = "fastapi-${var.some_unique_variable}-"
   image_id      = "ami-073e64e4c237c08ad" # This is an Amazon Linux 2 LTS AMI. Make sure to use an updated one or the one relevant to your region.
   instance_type   = "t2.micro"
 
