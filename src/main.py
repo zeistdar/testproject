@@ -157,9 +157,10 @@ async def get_current_api_key(api_key_header: str = Depends(api_key_header)):
 async def index_data(request: Request, data: QA, api_key: str = Depends(get_current_api_key)) -> dict:
     try:
         log_to_cloudwatch(f"Indexing data: {data}")
-        
+
         # Check if question-answer pair already exists in DynamoDB
         response = table.query(
+            IndexName='QuestionAnswerIndex',
             KeyConditionExpression=Key('question').eq(data.question) & Key('answer').eq(data.answer)
         )
 
