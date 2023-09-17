@@ -20,6 +20,7 @@ locals {
     PUBLIC_IP_ADDRESS = aws_instance.chroma_instance.public_ip,
     CHROMA_AUTH_TOKEN = random_password.chroma_token.result
     SECRET_API_KEY    = random_password.chroma_password.result
+    REDIS_URL         = aws_elasticache_cluster.my_cluster.cache_nodes.0.address
   }
   current_time = replace(timestamp(), ":", "-")
 }
