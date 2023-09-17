@@ -174,3 +174,8 @@ resource "aws_security_group" "lambda_sg" {
   description = "Security group for Lambda function"
   vpc_id      = aws_vpc.custom_vpc.id
 }
+
+resource "aws_iam_role_policy_attachment" "lambda_secrets_manager_access" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
