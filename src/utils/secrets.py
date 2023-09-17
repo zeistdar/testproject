@@ -2,7 +2,7 @@ import boto3
 import json
 
 def get_secret():
-    secret_name = "example_secret"
+    secret_name = "instance_credentials"
     region_name = "us-west-1"
     session = boto3.session.Session()
     client = session.client(service_name='secretsmanager', region_name=region_name)

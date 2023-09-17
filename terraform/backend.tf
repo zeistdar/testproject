@@ -12,15 +12,14 @@ output "alb_security_group_id" {
 }
 
 resource "aws_secretsmanager_secret" "example_secret" {
-  name = "example_secret"
+  name = "instance_credentials"
 }
 
 locals {
   combined_secret = {
-    username          = "testuser",
-    password          = "mypassword",
     PUBLIC_IP_ADDRESS = aws_instance.chroma_instance.public_ip,
     CHROMA_AUTH_TOKEN = random_password.chroma_token.result
+    SECRET_API_KEY    = random_password.chroma_password.result
   }
   current_time = replace(timestamp(), ":", "-")
 }
