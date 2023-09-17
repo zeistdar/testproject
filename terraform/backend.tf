@@ -713,7 +713,10 @@ resource "aws_iam_policy" "dynamodb_access_policy" {
           "dynamodb:Scan",
           "dynamodb:DeleteItem"
         ],
-        Resource = aws_dynamodb_table.qa_table.arn,
+        Resource = [
+          aws_dynamodb_table.qa_table.arn,
+          "${aws_dynamodb_table.qa_table.arn}/index/*"
+        ]
         Effect   = "Allow"
       }
     ]
