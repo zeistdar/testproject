@@ -10,4 +10,4 @@ cp ../event_driven_lambda/index.py .
 docker run --rm -v $(pwd):/var/task lambci/lambda:build-python3.8 pip install boto3 requests -t .
 
 # Zip up the package
-zip -r9 ../lambda.zip .
+zip -r9 /tmp/lambda.zip .
