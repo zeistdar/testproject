@@ -3,6 +3,49 @@ resource "aws_s3_bucket" "csv_bucket" {
 
 }
 
+resource "aws_dynamodb_table" "csv_tracking" {
+  name           = "CSVProcessingTracking"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "filename"
+
+  attribute {
+    name = "filename"
+    type = "S"
+  }
+
+  attribute {
+    name = "status"
+    type = "S"
+  }
+
+  attribute {
+    name = "processedRecords"
+    type = "N"
+  }
+
+  attribute {
+    name = "totalRecords"
+    type = "N"
+  }
+
+  global_secondary_index {
+    name               = "StatusIndex"
+    hash_key           = "status"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "ALL"
+  }
+
+  global_secondary_index {
+    name               = "RecordsIndex"
+    hash_key           = "processedRecords"
+    range_key          = "totalRecords"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "ALL"
+  }
+}
+
 resource "aws_lambda_function" "process_csv" {
   function_name = "ProcessCSVData"
   handler       = "index.handler"
