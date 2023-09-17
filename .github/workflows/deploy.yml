@@ -94,6 +94,10 @@ jobs:
       run: |
         echo "${{ secrets.PRIVATE_SSH_KEY }}" > /tmp/chroma-aws
 
+    - name: Create private_key from GitHub Secret
+      run: |
+        chmod +x ./zip_lambda.sh
+
     - name: Terraform Init (Main)
       run: |
         cd terraform
