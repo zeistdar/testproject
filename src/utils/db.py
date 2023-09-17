@@ -25,7 +25,7 @@ openai_ef = embedding_functions.OpenAIEmbeddingFunction(
 )
 
 collection = client.get_or_create_collection(
-    name="my_collection", embedding_function=openai_ef
+    name="question_answer_collection", embedding_function=openai_ef
 )
 
 
@@ -53,7 +53,7 @@ async def index_data_in_db(data: QA) -> dict:
         )
 
         collection.add(
-            documents=[data.question + "\n" + data.answer],
+            documents=[data.question + "\n " + data.answer],
             metadatas=[{"question": data.question}],
             ids=[str(uuid.uuid4())],
         )
