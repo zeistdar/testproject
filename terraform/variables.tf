@@ -20,13 +20,13 @@ variable "instance_type" {
 variable "public_access" {
   description = "Enable public ingress on port 8000"
   type        = bool
-  default     = true // or true depending on your needs
+  default     = true 
 }
 
 variable "enable_auth" {
   description = "Enable authentication"
   type        = bool
-  default     = true // or false depending on your needs
+  default     = true 
 }
 
 variable "auth_type" {
@@ -95,7 +95,7 @@ variable "prevent_chroma_data_volume_delete" {
 
 variable "availability_zone" {
   description = "The availability zone where the resources should be created"
-  default     = "us-west-1a"  # You can change this to your preferred AZ
+  default     = "us-west-1a"  
 }
 
 variable "docker_image_tag" {

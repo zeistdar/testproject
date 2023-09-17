@@ -22,8 +22,6 @@ def handler(event, context):
     # Read the CSV from S3
     response = s3.get_object(Bucket=bucket, Key=key)
     lines = response['Body'].read().decode('utf-8').splitlines()
-    print(lines)
-    logging.info(lines)
     csv_reader = csv.DictReader(lines)
     # Read data and send to FastAPI for indexing
     for row in csv_reader:
@@ -47,7 +45,7 @@ def handler(event, context):
         if response.status_code != 200:
             print(f"Failed to index data: {payload}")
             logging.info(f"Failed to index data: {payload}")
-    
+
     # Update the DynamoDB table
     table_name = os.environ['DYNAMODB_TABLE_NAME']
     table = dynamodb.Table(table_name)

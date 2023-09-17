@@ -7,6 +7,10 @@ resource "aws_key_pair" "deployer" {
   public_key = file("/tmp/chroma-aws.pub")
 }
 
+output "alb_security_group_id" {
+  value = aws_security_group.allow_alb.id
+}
+
 resource "aws_secretsmanager_secret" "example_secret" {
   name = "example_secret"
 }
@@ -90,10 +94,15 @@ resource "aws_security_group" "allow_alb" {
     protocol    = "-1" # This means all protocols
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # egress {
+  #   from_port   = 8000  # The port Chroma is running on
+  #   to_port     = 8000
+  #   protocol    = "tcp"
+  #   security_groups = [aws_security_group.chroma_sg.name]  # Allow egress to the Chroma instances
+  # }
 }
 
-
-# ...
 
 # CloudWatch Log Group and Stream
 resource "aws_cloudwatch_log_group" "app_log_group" {
@@ -160,7 +169,7 @@ resource "aws_cloudwatch_log_metric_filter" "index_endpoint_calls" {
 # CloudWatch Metric Filter to monitor endpoint calls
 resource "aws_cloudwatch_log_metric_filter" "index_endpoint_errors" {
   name           = "IndexEndpointErrors"
-  pattern        = "Index Failed"  # Adjust the pattern to match your log format
+  pattern        = "Index Failed"  
   log_group_name = aws_cloudwatch_log_group.app_log_group.name
 
   metric_transformation {
@@ -173,7 +182,7 @@ resource "aws_cloudwatch_log_metric_filter" "index_endpoint_errors" {
 # CloudWatch Metric Filter to monitor endpoint calls
 resource "aws_cloudwatch_log_metric_filter" "search_endpoint_errors" {
   name           = "SearchEndpointErrors"
-  pattern        = "Search Failed"  # Adjust the pattern to match your log format
+  pattern        = "Search Failed" 
   log_group_name = aws_cloudwatch_log_group.app_log_group.name
 
   metric_transformation {

@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "csv_bucket" {
-  bucket = "zee-csv-faqs-bucket-name" # Change this to your desired bucket name
+  bucket = "zee-csv-faqs-bucket-name"
 
 }
 
@@ -51,9 +51,8 @@ resource "aws_lambda_function" "process_csv" {
   handler       = "index.handler"
   runtime       = "python3.11"
 
-  # Assuming you have a deployment package named "lambda_function_payload.zip" in your working directory
-  filename = "/tmp/lambda.zip"
-  source_code_hash = filebase64sha256("/tmp/lambda.zip")
+  filename = "../lambda.zip"
+  source_code_hash = filebase64sha256("../lambda.zip")
   timeout = 300
   memory_size   = 512
   environment {
@@ -168,4 +167,10 @@ resource "aws_iam_policy" "dynamodb_access_policy_event" {
 resource "aws_iam_role_policy_attachment" "lambda_dynamodb_access_event" {
   policy_arn = aws_iam_policy.dynamodb_access_policy_event.arn
   role       = aws_iam_role.lambda_exec.name
+}
+
+resource "aws_security_group" "lambda_sg" {
+  name        = "lambda-sg"
+  description = "Security group for Lambda function"
+  vpc_id      = aws_vpc.custom_vpc.id
 }
