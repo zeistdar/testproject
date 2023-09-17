@@ -9,8 +9,8 @@ resource "aws_lambda_function" "process_csv" {
   runtime       = "python3.11"
 
   # Assuming you have a deployment package named "lambda_function_payload.zip" in your working directory
-  filename = "../lambda.zip"
-  source_code_hash = filebase64sha256("../lambda.zip")
+  filename = "/tmp/lambda.zip"
+  source_code_hash = filebase64sha256("/tmp/lambda.zip")
   timeout = 300
   memory_size   = 512
   environment {
