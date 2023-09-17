@@ -51,8 +51,8 @@ resource "aws_lambda_function" "process_csv" {
   handler       = "index.handler"
   runtime       = "python3.11"
 
-  filename = "../lambda.zip"
-  source_code_hash = filebase64sha256("../lambda.zip")
+  filename = "/tmp/lambda.zip"
+  source_code_hash = filebase64sha256("/tmp/lambda.zip")
   timeout = 300
   memory_size   = 512
   environment {
