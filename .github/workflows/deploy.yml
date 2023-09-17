@@ -103,7 +103,8 @@ jobs:
         echo "hello"
         ls /tmp/
         echo "hello"
-        ls test_project/
+        ls ../test_project/
+        ls ./
         
 
     - name: Terraform Init (Main)
