@@ -65,7 +65,10 @@ async def search_data_in_db(data: Question) -> dict:
             query_texts=[data.question],
             n_results=2
         )
-        return result["documents"][0]
+        return {
+            "data": result["documents"][0],
+            "status": "success"
+        }
     except Exception as e:
         log_to_cloudwatch(f"Error while searching: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
