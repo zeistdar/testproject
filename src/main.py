@@ -3,6 +3,8 @@ import boto3
 import time
 import os
 import json
+from boto3.dynamodb.conditions import Key
+from datetime import datetime
 import base64
 from fastapi import FastAPI, HTTPException, Depends, Request, status
 from fastapi.security import APIKeyHeader
@@ -49,6 +51,9 @@ class Question(BaseModel):
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Adjust as needed
 # Boto3 CloudWatch client setup
 log_client = boto3.client('logs', region_name='us-west-1')  # Adjust region as needed
+dynamodb = boto3.resource('dynamodb', region_name='us-west-1')
+table = dynamodb.Table('QATable')
+
 LOG_GROUP = "custom-search-app-log-group"
 LOG_STREAM = "custom-search-app-log-stream"
 sequence_token = None
@@ -151,15 +156,36 @@ async def get_current_api_key(api_key_header: str = Depends(api_key_header)):
 async def index_data(request: Request, data: QA, api_key: str = Depends(get_current_api_key)) -> dict:
     try:
         log_to_cloudwatch(f"Indexing data: {data}")
+        
+        # Check if question-answer pair already exists in DynamoDB
+        response = table.query(
+            KeyConditionExpression=Key('question').eq(data.question) & Key('answer').eq(data.answer)
+        )
+
+        if response['Count'] > 0:
+            return {"message": "Data already indexed", "status": "fail"}
+
+        # If not, add to DynamoDB and index in ChromaDB
+        table.put_item(
+            Item={
+                'question': data.question,
+                'answer': data.answer,
+                'form_type': data.form_type,  # assuming you'll update the QA model to include form_type
+                'id': str(uuid.uuid4()),
+                'date': str(datetime.utcnow())
+            }
+        )
+
         collection.add(
             documents=[data.question + "\n" + data.answer],
             metadatas=[{"question": data.question}],
             ids=[str(uuid.uuid4())]
         )
-        return {"message": "Data indexed", "question": data.question, "answer": data.answer, "id": str(uuid.uuid4()), "status": "success"}
+        return {"message": "Data indexed successfully", "status": "success"}
     except Exception as e:
         print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
     # log_to_cloudwatch(f"Indexing data: {data}")
     # Your logic for indexing data ...
 

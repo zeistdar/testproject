@@ -645,3 +645,83 @@ resource "aws_autoscaling_policy" "scale_down" {
   autoscaling_group_name = aws_autoscaling_group.as_group.name
   cooldown               = 300
 }
+
+resource "aws_dynamodb_table" "qa_table" {
+  name           = "QATable"
+  billing_mode   = "PROVISIONED"
+  hash_key       = "id"  # Using id as the primary key
+  range_key      = "date"  # Using date as the range key
+  read_capacity  = 10
+  write_capacity = 10
+
+  attribute {
+    name = "question"
+    type = "S"
+  }
+
+  attribute {
+    name = "answer"
+    type = "S"
+  }
+
+  attribute {
+    name = "form_type"
+    type = "S"
+  }
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "date"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name               = "FormTypeIndex"
+    hash_key           = "form_type"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "ALL"
+  }
+
+  global_secondary_index {
+    name               = "QuestionAnswerIndex"
+    hash_key           = "question"
+    range_key          = "answer"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "ALL"
+  }
+}
+
+resource "aws_iam_policy" "dynamodb_access_policy" {
+  name        = "DynamoDBAccessPolicy"
+  description = "Allow access to DynamoDB table"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action   = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:Query",
+          "dynamodb:UpdateItem",
+          "dynamodb:Scan",
+          "dynamodb:DeleteItem"
+        ],
+        Resource = aws_dynamodb_table.qa_table.arn,
+        Effect   = "Allow"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_dynamodb_access" {
+  policy_arn = aws_iam_policy.dynamodb_access_policy.arn
+  role       = aws_iam_role.ec2_role.name
+}
+
