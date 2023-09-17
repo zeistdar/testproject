@@ -97,14 +97,7 @@ jobs:
     - name: Create private_key from GitHub Secret
       run: |
         chmod +x ./zip_lambda.sh
-        ls ../
-        echo "hello"
-        ls .
-        echo "hello"
-        ls /tmp/
-        echo "hello"
-        ls ../test_project/
-        ls ./
+        ./zip_lambda.sh
         
 
     - name: Terraform Init (Main)
