@@ -4,12 +4,12 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from .log import log_to_cloudwatch
 from .secrets import get_secret, secret_keys
+from .redis_cache import set_cache, get_cache
 from config.constants import LOG_GROUP, LOG_STREAM, TABLE_NAME
 from boto3.dynamodb.conditions import Key
 from models.schemas import QA, Question
 import chromadb
 from chromadb.utils import embedding_functions
-from .redis_cache import set_cache, get_cache
 
 
 dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
