@@ -4,3 +4,4 @@ LOG_STREAM = "custom-search-app-log-stream"
 TABLE_NAME = "QATable"
 EMBEDDING_MODEL = "text-embedding-ada-002"
 API_KEY_NAME = "secret-api-key"
+

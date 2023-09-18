@@ -658,3 +658,58 @@ resource "aws_iam_role_policy_attachment" "ec2_dynamodb_access" {
   role       = aws_iam_role.ec2_role.name
 }
 
+
+
+
+
+# Create a security group for Redis
+resource "aws_security_group" "redis_sg" {
+  vpc_id = aws_vpc.custom_vpc.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Create an ElastiCache Redis cluster
+resource "aws_elasticache_cluster" "my_cluster" {
+  cluster_id           = "redis-cluster"
+  engine               = "redis"
+  node_type            = "cache.t2.micro"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis6.x"
+  engine_version       = "6.x"
+  port                 = 6379
+  subnet_group_name    = aws_elasticache_subnet_group.my_subnet_group.name
+  security_group_ids   = [aws_security_group.redis_sg.id]
+}
+
+# Subnet group for the Redis cluster
+resource "aws_elasticache_subnet_group" "my_subnet_group" {
+  name       = "my-subnet-group"
+  subnet_ids = [aws_subnet.custom_subnet.id, aws_subnet.custom_subnet_2.id]
+
+  description = "Subnet group for Redis"
+}
+
+# ALB Security Group
+resource "aws_security_group" "alb_sg" {
+  vpc_id = aws_vpc.custom_vpc.id
+
+  ingress {
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}

@@ -9,11 +9,15 @@ from boto3.dynamodb.conditions import Key
 from models.schemas import QA, Question
 import chromadb
 from chromadb.utils import embedding_functions
+from .redis_cache import set_cache, get_cache
+
 
 dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 table = dynamodb.Table(TABLE_NAME)
 
 CHROMA_AUTH = secret_keys["CHROMA_AUTH_TOKEN"]
+REDIS_URL = f"redis://{secret_keys['REDIS_URL']}:6379"
+
 headers = {"Authorization": f"Bearer {CHROMA_AUTH}"}
 
 client = chromadb.HttpClient(
@@ -57,6 +61,7 @@ async def index_data_in_db(data: QA) -> dict:
             metadatas=[{"question": data.question}],
             ids=[str(uuid.uuid4())],
         )
+        await set_cache(data.question, None)
         return {"message": "Data indexed successfully", "status": "success"}
     except Exception as e:
         log_to_cloudwatch(f"Error while indexing: {str(e)}")
@@ -67,7 +72,11 @@ async def index_data_in_db(data: QA) -> dict:
 
 async def search_data_in_db(data: Question) -> dict:
     try:
+        cached_result = await get_cache(data.question)
+        if cached_result:
+            return cached_result
         result = collection.query(query_texts=[data.question], n_results=2)
+        await set_cache(data.question, {"data": result["documents"][0], "status": "success"})
         return {"data": result["documents"][0], "status": "success"}
     except Exception as e:
         log_to_cloudwatch(f"Error while searching: {str(e)}")
