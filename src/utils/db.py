@@ -57,6 +57,7 @@ async def index_data_in_db(data: QA) -> dict:
             return {"message": "Data already indexed", "status": "fail"}
 
         # If not, add to DynamoDB and index in ChromaDB
+        log_to_cloudwatch(f"Indexing data: {data}")
         table.put_item(
             Item={
                 "question": data.question,
@@ -88,6 +89,7 @@ async def search_data_in_db(data: Question) -> dict:
             # Deserialize the data from the JSON string
             data = json.loads(cached_result)
             return data
+        log_to_cloudwatch(f"Searching with query: {data.question}")
         result = collection.query(query_texts=[data.question], n_results=2)
         # comb = ' '.join(result["documents"][0])
         # messages = [
