@@ -54,6 +54,7 @@ async def index_data_in_db(data: QA) -> dict:
         )
 
         if response["Count"] > 0:
+            log_to_cloudwatch(f"Indexing Already Done for: {data}")
             return {"message": "Data already indexed", "status": "fail"}
 
         # If not, add to DynamoDB and index in ChromaDB
@@ -87,6 +88,7 @@ async def search_data_in_db(data: Question) -> dict:
         cached_result = await get_cache(data.question)
         if cached_result:
             # Deserialize the data from the JSON string
+            log_to_cloudwatch(f"Searching not done. Found cached result for query: {data.question}")
             data = json.loads(cached_result)
             return data
         log_to_cloudwatch(f"Searching with query: {data.question}")
