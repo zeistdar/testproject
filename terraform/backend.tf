@@ -13,11 +13,6 @@ output "alb_security_group_id" {
 
 resource "aws_secretsmanager_secret" "example_secret" {
   name = "instance_credentials"
-  secret_string = "{\"key\":\"value\"}"
-
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
 }
 
 locals {
