@@ -17,7 +17,7 @@ dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 table = dynamodb.Table(TABLE_NAME)
 
 CHROMA_AUTH = secret_keys["CHROMA_AUTH_TOKEN"]
-REDIS_PATH = f"redis://{secret_keys['REDIS_URL']}:6379"
+REDIS_PATH = f"{secret_keys['REDIS_URL']}:6379"
 
 headers = {"Authorization": f"Bearer {CHROMA_AUTH}"}
 
