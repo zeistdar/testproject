@@ -1,6 +1,7 @@
 import boto3
 import uuid
 import aioredis
+import json
 from datetime import datetime
 from fastapi import HTTPException, status
 from .log import log_to_cloudwatch
@@ -83,9 +84,12 @@ async def search_data_in_db(data: Question) -> dict:
     try:
         cached_result = await get_cache(data.question)
         if cached_result:
-            return cached_result
+            # Deserialize the data from the JSON string
+            data = json.loads(cached_result)
+            return data
         result = collection.query(query_texts=[data.question], n_results=2)
-        await set_cache(data.question, {"data": result["documents"][0], "status": "success"})
+        serialized_data = json.dumps({"data": result["documents"][0], "status": "success"})
+        await set_cache(data.question, serialized_data)
         return {"data": result["documents"][0], "status": "success"}
     except Exception as e:
         log_to_cloudwatch(f"Error while searching: {str(e)}")
