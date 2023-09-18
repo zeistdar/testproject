@@ -18,7 +18,7 @@ dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 table = dynamodb.Table(TABLE_NAME)
 
 CHROMA_AUTH = secret_keys["CHROMA_AUTH_TOKEN"]
-REDIS_URL = f"redis://{secret_keys['REDIS_URL']}:6379"
+REDIS_PATH = f"redis://{secret_keys['REDIS_URL']}:6379"
 
 headers = {"Authorization": f"Bearer {CHROMA_AUTH}"}
 
@@ -35,7 +35,7 @@ collection = client.get_or_create_collection(
 )
 
 
-redis_cache = aioredis.from_url(REDIS_URL, decode_responses=True)
+redis_cache = aioredis.from_url(REDIS_PATH, decode_responses=True)
 
 async def set_cache(key: str, value: str, expiration: int = 60):
     await redis_cache.set(key, value, ex=expiration)
