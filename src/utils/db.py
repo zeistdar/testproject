@@ -2,6 +2,7 @@ import boto3
 import uuid
 import aioredis
 import json
+import openai
 from datetime import datetime
 from fastapi import HTTPException, status
 from .log import log_to_cloudwatch
@@ -19,7 +20,7 @@ table = dynamodb.Table(TABLE_NAME)
 
 CHROMA_AUTH = secret_keys["CHROMA_AUTH_TOKEN"]
 REDIS_PATH = f"redis://{secret_keys['REDIS_URL']}:6379"
-
+GPT_MODEL = "gpt-3.5-turbo"
 headers = {"Authorization": f"Bearer {CHROMA_AUTH}"}
 
 client = chromadb.HttpClient(
@@ -74,7 +75,7 @@ async def index_data_in_db(data: QA) -> dict:
         await set_cache(data.question, None)
         return {"message": "Data indexed successfully", "status": "success"}
     except Exception as e:
-        log_to_cloudwatch(f"Error while indexing: {str(e)}")
+        log_to_cloudwatch("Indexing Failed: " + str(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
@@ -88,11 +89,23 @@ async def search_data_in_db(data: Question) -> dict:
             data = json.loads(cached_result)
             return data
         result = collection.query(query_texts=[data.question], n_results=2)
+        # comb = ' '.join(result["documents"][0])
+        # messages = [
+        #         {"role": "system", "content": "You answer questions about the Company's data."},
+        #         {"role": "user", "content": comb},
+        #     ]
+        # response = openai.ChatCompletion.create(
+        #         model=GPT_MODEL,
+        #         messages=messages,
+        #         temperature=0
+        # )
+        # response_message = response["choices"][0]["message"]["content"]
+        # serialized_data = json.dumps({"data": [response_message], "status": "success"})
         serialized_data = json.dumps({"data": result["documents"][0], "status": "success"})
         await set_cache(data.question, serialized_data)
         return {"data": result["documents"][0], "status": "success"}
     except Exception as e:
-        log_to_cloudwatch(f"Error while searching: {str(e)}")
+        log_to_cloudwatch("Search Failed: " + str(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
