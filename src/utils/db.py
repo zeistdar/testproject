@@ -1,7 +1,6 @@
 import boto3
 import uuid
 import aioredis
-from config.constants import REDIS_URL
 from datetime import datetime
 from fastapi import HTTPException, status
 from .log import log_to_cloudwatch
