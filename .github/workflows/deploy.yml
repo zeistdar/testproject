@@ -94,7 +94,7 @@ jobs:
       run: |
         echo "${{ secrets.PRIVATE_SSH_KEY }}" > /tmp/chroma-aws
 
-    - name: Create private_key from GitHub Secret
+    - name: Zipping and packaging lambda
       run: |
         chmod +x ./zip_lambda.sh
         ./zip_lambda.sh
