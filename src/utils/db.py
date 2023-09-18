@@ -1,10 +1,12 @@
 import boto3
 import uuid
+import aioredis
+from config.constants import REDIS_URL
 from datetime import datetime
 from fastapi import HTTPException, status
 from .log import log_to_cloudwatch
 from .secrets import get_secret, secret_keys
-from .redis_cache import set_cache, get_cache
+# from .redis_cache import set_cache, get_cache
 from config.constants import LOG_GROUP, LOG_STREAM, TABLE_NAME
 from boto3.dynamodb.conditions import Key
 from models.schemas import QA, Question
@@ -32,6 +34,14 @@ collection = client.get_or_create_collection(
     name="question_answer_collection", embedding_function=openai_ef
 )
 
+
+redis_cache = aioredis.from_url(REDIS_URL, decode_responses=True)
+
+async def set_cache(key: str, value: str, expiration: int = 60):
+    await redis_cache.set(key, value, ex=expiration)
+
+async def get_cache(key: str) -> str:
+    return await redis_cache.get(key)
 
 async def index_data_in_db(data: QA) -> dict:
     try:
